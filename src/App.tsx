@@ -137,8 +137,16 @@ export default function App() {
   const triggerSuccess = () => {
     confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
     const newSavings = savings + 100;
-    setSavings(newSavings);
-    localStorage.setItem('quest_savings', String(newSavings));
+    
+    // 🪙 1500원(15일) 완공 시 자동 리셋 시스템 도입
+    if (newSavings >= 1500) {
+      alert("🎉 축하합니다! 15일 퀘스트를 모두 격파하여 1500원을 정복했습니다! 부모님께 용돈을 요청하고 다음 15일 도전을 시작하세요! 용돈 보관함이 새로 리셋됩니다.");
+      setSavings(0);
+      localStorage.setItem('quest_savings', '0');
+    } else {
+      setSavings(newSavings);
+      localStorage.setItem('quest_savings', String(newSavings));
+    }
 
     const currentMissions = missions.filter(m => selectedIds.includes(m.id));
     const newRecords: DailyRecord[] = currentMissions.map(m => ({
@@ -165,7 +173,7 @@ export default function App() {
     const selectedHouseworkCount = missions.filter(m => m.category === 'housework' && selectedIds.includes(m.id)).length;
 
     if (selectedStudyCount !== settings.studyTarget || selectedHouseworkCount !== settings.houseworkTarget) {
-      alert(`🚨 공부 미션은 정확히 ${settings.studyTarget}개, 집안일은 ${settings.houseworkTarget}개를 골라야 작전을 시작할 수 있어!`);
+      alert(`🚨 공부 미션 ${settings.studyTarget}개, 집안일 ${settings.houseworkTarget}개를 골라야 전장으로 진입할 수 있어!`);
       return;
     }
 
@@ -178,7 +186,7 @@ export default function App() {
   };
 
   const resetTodayQuest = () => {
-    if (window.confirm("🚨 오늘 작전을 리셋하고 아침으로 돌아갈까요?")) {
+    if (window.confirm("🚨 오늘 작전을 해제하고 계획 모드로 복귀할까?")) {
       setCurrentPhase('plan');
       setCompletedIds([]);
       const essentials = missions.filter(m => m.category === 'essential').map(m => m.id);
@@ -196,7 +204,7 @@ export default function App() {
   };
 
   const deleteMission = (id: string) => {
-    if (window.confirm("🗑️ 이 항목을 영구 삭제할까?")) {
+    if (window.confirm("🗑️ 이 항목을 파괴할까?")) {
       setMissions(missions.filter(m => m.id !== id));
       setSelectedIds(selectedIds.filter(i => i !== id));
       setCompletedIds(completedIds.filter(i => i !== id));
@@ -210,7 +218,7 @@ export default function App() {
 
   const exportToCSV = () => {
     if (history.length === 0) {
-      alert("📊 축적된 전술 분석 일지가 존재하지 않습니다.");
+      alert("📊 축적된 성취 리포트 데이터가 비어 있습니다.");
       return;
     }
     let csvContent = "\uFEFF날짜,카테고리,항목,완료여부\n";
@@ -231,8 +239,7 @@ export default function App() {
     const dates = Array.from(new Set(history.map(h => h.date))).sort().slice(-7);
     const lineData = dates.map(d => {
       const dayLogs = history.filter(h => h.date === d);
-      const comp = dayLogs.filter(h => h.completed).length;
-      return { name: d.slice(5), 완료수: comp };
+      return { name: d.slice(5), 격파수: dayLogs.filter(h => h.completed).length };
     });
 
     const categories = { essential: 0, study: 0, housework: 0 };
@@ -245,13 +252,13 @@ export default function App() {
 
     const studyCounts: Record<string, number> = {};
     history.filter(h => h.category === 'study').forEach(h => { studyCounts[h.text] = (studyCounts[h.text] || 0) + 1; });
-    const barData = Object.keys(studyCounts).map(k => ({ name: k.substring(2, 8), 수행횟수: studyCounts[k] })).slice(0, 5);
+    const barData = Object.keys(studyCounts).map(k => ({ name: k.substring(2, 7), 횟수: studyCounts[k] })).slice(0, 5);
 
     return { lineData, pieData, barData };
   };
 
   const { lineData, pieData, barData } = getChartData();
-  const coinCount = Math.min(15, Math.floor(savings / 100));
+  const coinCount = Math.floor(savings / 100);
 
   const currentActiveMissions = missions.filter(m => selectedIds.includes(m.id));
   const totalCount = currentActiveMissions.length;
@@ -259,70 +266,63 @@ export default function App() {
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans select-none pb-24 relative" style={{ minHeight: '100vh', backgroundColor: '#020617', paddingBottom: '6rem' }}>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-3 select-none flex flex-col justify-between" style={{ minHeight: '100vh', backgroundColor: '#020617', boxSizing: 'border-box' }}>
       
-      {/* 사이버 작전실 헤더 */}
-      <header className="bg-slate-900 border-b-4 border-cyan-500/40 p-4 sticky top-0 z-40 shadow-2xl flex justify-between items-center" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0f172a', padding: '1rem', borderBottom: '4px solid rgba(6,182,212,0.4)' }}>
-        <div className="flex items-center gap-3" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      {/* 🚀 갤럭시탭 맞춤 슬림 밀리터리 헤더 */}
+      <header className="flex justify-between items-center bg-slate-900 border-b-2 border-cyan-500/30 p-2.5 rounded-xl shadow-md" style={{ backgroundColor: '#0f172a', borderBottom: '2px solid rgba(6,182,212,0.3)', padding: '0.6rem 1rem' }}>
+        <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <button 
             type="button" 
             onClick={() => setIsEditorOpen(true)}
-            className="bg-slate-950 border border-slate-700 hover:border-cyan-400 p-3 rounded-2xl text-cyan-400 shadow-md transition-all active:scale-90"
-            style={{ backgroundColor: '#020617', border: '1px solid #334155', borderRadius: '1rem', padding: '0.75rem', color: '#22d3ee', fontSize: '1.25rem', cursor: 'pointer' }}
+            className="bg-slate-950 text-cyan-400 font-bold p-2 text-base rounded-xl border border-slate-700 active:scale-90 transition-all cursor-pointer"
           >
-            ✏️
+            ⚙️ 설정
           </button>
           <div>
-            <h1 className="text-2xl font-black tracking-wider text-cyan-400 game-font" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#22d3ee', margin: 0 }}>DAILY QUEST</h1>
-            <p className="text-[10px] text-cyan-500 font-bold tracking-widest uppercase" style={{ fontSize: '10px', color: '#06b6d4', margin: 0 }}>Combat Controller v2.0</p>
+            <h1 className="text-xl font-black tracking-wider text-cyan-400 m-0" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#22d3ee' }}>DAILY QUEST</h1>
           </div>
         </div>
 
-        {/* 대형 보물창고 */}
-        <div className="bg-slate-950 px-5 py-2.5 rounded-2xl border-2 border-yellow-500/50 flex items-center gap-3 shadow-[0_0_15px_rgba(234,179,8,0.2)]" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', backgroundColor: '#020617', border: '2px solid rgba(234,179,8,0.5)', borderRadius: '1rem', padding: '0.5rem 1rem' }}>
-          <span className="text-3xl animate-bounce" style={{ fontSize: '1.875rem' }}>🪙</span>
-          <div>
-            <div className="text-[10px] text-yellow-500 font-black tracking-widest" style={{ fontSize: '10px', color: '#eab308', fontWeight: 900 }}>COMMANDER GOLD</div>
-            <div className="text-xl font-black text-yellow-400" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#facc15' }}>{savings} 원</div>
+        {/* 💎 이모지 깨짐 완벽 방지 보물 창고 */}
+        <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-yellow-500/40 flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#020617', border: '1px solid rgba(234,179,8,0.4)', padding: '0.4rem 0.8rem' }}>
+          <span className="text-xl animate-pulse" style={{ fontSize: '1.25rem' }}>💎</span>
+          <div className="text-left">
+            <div className="text-[9px] text-yellow-500 font-black" style={{ fontSize: '9px', color: '#eab308' }}>COMMANDER SAVINGS</div>
+            <div className="text-base font-black text-yellow-400 p-0 m-0 leading-tight" style={{ fontSize: '1.1rem', fontWeight: 900, color: '#facc15' }}>{savings} 원</div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-4 mt-4" style={{ maxWidth: '56rem', margin: '1rem auto', padding: '1rem' }}>
+      {/* 🛠️ 메인 격파 센터 */}
+      <main className="flex-1 w-full max-w-5xl mx-auto my-2" style={{ width: '100%', margin: '0.5rem auto' }}>
         
         {/* ==========================================
-            [PHASE 1] 계획 수립 화면 (최상단에 시작 버튼 배치완료)
+            [PHASE 1] 계획 수립 페이즈 (한 화면에 무조건 안착)
             ========================================== */}
         {currentPhase === 'plan' && (
-          <div className="space-y-6" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            
-            {/* 📢 최상단 전광판 안내 및 강조형 시작 버튼 */}
-            <div className="bg-slate-900 p-6 rounded-3xl border-2 border-cyan-500 text-center shadow-lg" style={{ backgroundColor: '#0f172a', padding: '1.5rem', borderRadius: '1.5rem', border: '2px solid #06b6d4', textAlign: 'center' }}>
-              <h2 className="text-2xl font-black text-cyan-400 mb-2" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#22d3ee', marginBottom: '0.5rem' }}>🎯 작전 계획 수립 프로토콜</h2>
-              <p className="text-sm font-bold text-slate-400 mb-4" style={{ fontSize: '0.875rem', color: '#94a3b8', marginBottom: '1rem' }}>
-                아래 훈련에서 오늘 격파할 <span style={{ color: '#3b82f6', fontWeight: 900 }}>공부 {settings.studyTarget}개</span>와 <span style={{ color: '#f97316', fontWeight: 900 }}>집안일 {settings.houseworkTarget}개</span>를 터치해라!
-              </p>
-              
-              {/* 🚀 최상단에 큼직하게 배치한 메인 시작 버튼 */}
+          <div className="flex flex-col gap-3">
+            <div className="bg-slate-900 p-3 rounded-xl border border-cyan-500/40 text-center flex items-center justify-between gap-4" style={{ backgroundColor: '#0f172a', border: '1px solid #06b6d4', padding: '0.75rem 1rem' }}>
+              <div className="text-left">
+                <h2 className="text-base font-black text-cyan-400 m-0" style={{ fontSize: '1.05rem', color: '#22d3ee' }}>🎯 작전 계획 수립 프로토콜</h2>
+                <p className="text-xs text-slate-400 m-0" style={{ fontSize: '0.8rem', color: '#94a3b8' }}>공부 {settings.studyTarget}개 + 집안일 {settings.houseworkTarget}개를 터치 장착해라!</p>
+              </div>
               <button
                 type="button"
                 onClick={startTodayQuest}
-                className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-slate-950 font-black text-2xl py-5 rounded-2xl tracking-widest uppercase shadow-xl transition-all"
-                style={{ width: '100%', padding: '1.25rem', borderRadius: '1rem', border: 'none', background: 'linear-gradient(to right, #22d3ee, #2563eb)', color: '#020617', fontSize: '1.5rem', fontWeight: 900, letterSpacing: '0.1em', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(6,182,212,0.5)' }}
+                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm px-6 py-2.5 rounded-xl tracking-wider active:scale-95 transition-all cursor-pointer shadow-lg"
+                style={{ background: 'linear-gradient(to right, #06b6d4, #2563eb)', color: '#020617', padding: '0.6rem 1.2rem', borderRadius: '0.75rem', fontWeight: 900, fontSize: '0.9rem', border: 'none' }}
               >
-                ⚡ 선택 완료! 오늘 작전 개시! ⚡
+                🚀 오늘 작전 개시! 
               </button>
             </div>
 
-            {/* 공부 선택 블록 */}
+            {/* 공부 선택 (3열 가로 압축형 격자) */}
             <section>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#3b82f6', margin: 0 }}>🧠 오늘 수행할 공부 퀘스트</h3>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#1e3a8a', color: '#93c5fd', padding: '0.25rem 0.75rem', borderRadius: '9999px', border: '1px solid #1e40af' }}>
-                  {missions.filter(m => m.category === 'study' && selectedIds.includes(m.id)).length} / {settings.studyTarget} 선택됨
-                </span>
+              <div className="flex justify-between items-center mb-1.5">
+                <h3 className="text-sm font-black text-blue-400 m-0" style={{ color: '#3b82f6', fontSize: '0.9rem' }}>🧠 공부 강화 퀘스트</h3>
+                <span className="text-[10px] font-bold bg-blue-950 text-blue-300 px-2 py-0.5 rounded-full">{missions.filter(m => m.category === 'study' && selectedIds.includes(m.id)).length} / {settings.studyTarget} 선택</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 {missions.filter(m => m.category === 'study').map(m => {
                   const isSelected = selectedIds.includes(m.id);
                   return (
@@ -330,27 +330,23 @@ export default function App() {
                       key={m.id}
                       type="button"
                       onClick={() => handleCardClick(m.id, m.category)}
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '6rem', padding: '1.25rem', borderRadius: '1rem', border: isSelected ? '2px solid #3b82f6' : '2px solid #1e293b', backgroundColor: isSelected ? '#1e3a8a' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '3.6rem', padding: '0.75rem', borderRadius: '0.75rem', border: isSelected ? '2px solid #3b82f6' : '1px solid #1e293b', backgroundColor: isSelected ? '#1e3a8a' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' }}
                     >
-                      <span style={{ fontSize: '1.125rem', fontWeight: 800 }}>{m.text}</span>
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', border: '2px solid #475569', display: 'flex', alignItems: 'center', justifycontent: 'center', backgroundColor: isSelected ? '#3b82f6' : 'transparent', color: '#fff' }}>
-                        {isSelected && "✓"}
-                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.text}</span>
+                      <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '0.35rem', border: '1px solid #475569', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#3b82f6' : 'transparent', fontSize: '0.7rem' }}>{isSelected && "✓"}</div>
                     </button>
                   );
                 })}
               </div>
             </section>
 
-            {/* 집안일 선택 블록 */}
+            {/* 집안일 선택 (3열 동일 비율 격자) */}
             <section>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f97316', margin: 0 }}>🏡 오늘 서포트할 집안일</h3>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#7c2d12', color: '#ffedd5', padding: '0.25rem 0.75rem', borderRadius: '9999px', border: '1px solid #9a3412' }}>
-                  {missions.filter(m => m.category === 'housework' && selectedIds.includes(m.id)).length} / {settings.houseworkTarget} 선택됨
-                </span>
+              <div className="flex justify-between items-center mb-1.5">
+                <h3 className="text-sm font-black text-orange-400 m-0" style={{ color: '#f97316', fontSize: '0.9rem' }}>🏡 집안일 서포트 기여</h3>
+                <span className="text-[10px] font-bold bg-orange-950 text-orange-300 px-2 py-0.5 rounded-full">{missions.filter(m => m.category === 'housework' && selectedIds.includes(m.id)).length} / {settings.houseworkTarget} 선택</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 {missions.filter(m => m.category === 'housework').map(m => {
                   const isSelected = selectedIds.includes(m.id);
                   return (
@@ -358,12 +354,10 @@ export default function App() {
                       key={m.id}
                       type="button"
                       onClick={() => handleCardClick(m.id, m.category)}
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '6rem', padding: '1.25rem', borderRadius: '1rem', border: isSelected ? '2px solid #f97316' : '2px solid #1e293b', backgroundColor: isSelected ? '#7c2d12' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '3.6rem', padding: '0.75rem', borderRadius: '0.75rem', border: isSelected ? '2px solid #f97316' : '1px solid #1e293b', backgroundColor: isSelected ? '#7c2d12' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' }}
                     >
-                      <span style={{ fontSize: '1.125rem', fontWeight: 800 }}>{m.text}</span>
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '0.5rem', border: '2px solid #475569', display: 'flex', alignItems: 'center', justifycontent: 'center', backgroundColor: isSelected ? '#f97316' : 'transparent', color: '#fff' }}>
-                        {isSelected && "✓"}
-                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.text}</span>
+                      <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '0.35rem', border: '1px solid #475569', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? '#f97316' : 'transparent', fontSize: '0.7rem' }}>{isSelected && "✓"}</div>
                     </button>
                   );
                 })}
@@ -373,29 +367,27 @@ export default function App() {
         )}
 
         {/* ==========================================
-            [PHASE 2] 작전 실행 화면 (미션 체크 모드)
+            [PHASE 2] 작전 실행 페이즈 (필수 + 선택 통합 3열 바둑판)
             ========================================== */}
         {currentPhase === 'action' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ backgroundColor: '#0f172a', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid #334155' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ffffff', margin: 0 }}>⚡ 실시간 미션 수행 모드</h2>
-                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0.25rem 0 0 0' }}>완료 시 카드를 터치해라!</p>
-                </div>
-                <div style={{ backgroundColor: '#020617', padding: '0.5rem 1rem', borderRadius: '1rem', border: '1px solid #1e293b' }}>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{completedCount}</span>
-                  <span style={{ color: '#475569', margin: '0 0.5rem' }}>/</span>
-                  <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#cbd5e1' }}>{totalCount} 완료</span>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-800" style={{ backgroundColor: '#0f172a', padding: '0.6rem 1rem' }}>
+              <div className="text-left">
+                <h2 className="text-sm font-black text-white m-0">⚡ 실시간 하이테크 레이더 모드</h2>
+                <div style={{ width: '12rem', backgroundColor: '#020617', height: '0.75rem', borderRadius: '9999px', marginTop: '0.3rem', border: '1px solid #1e293b', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: 'linear-gradient(to right, #22d3ee, #10b981)', width: `${progressPercent}%`, transition: 'width 0.3s' }} />
                 </div>
               </div>
-              <div style={{ width: '100%', backgroundColor: '#020617', height: '1.5rem', borderRadius: '9999px', padding: '0.25rem', border: '1px solid #1e293b', boxSizing: 'border-box', overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: '9999px', background: 'linear-gradient(to right, #22d3ee, #3b82f6, #10b981)', width: `${progressPercent}%`, transition: 'width 0.4s ease-in-out' }} />
+              <div className="flex items-center gap-3">
+                <div style={{ backgroundColor: '#020617', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.85rem', fontStyle: 'normal', fontWeight: 700 }}>
+                  <span style={{ color: '#10b981' }}>{completedCount}</span> / {totalCount} 완료
+                </div>
+                <button type="button" onClick={resetTodayQuest} className="text-[10px] font-bold text-red-400 bg-red-950/20 px-2.5 py-1.5 rounded-lg border border-red-900/40 cursor-pointer">🔄 리셋</button>
               </div>
             </div>
 
-            {/* 실행용 정렬 바둑판 그리드 */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            {/* 가로 공간 최적화용 3열 격자 배치 */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
               {currentActiveMissions.map(m => {
                 const isCompleted = completedIds.includes(m.id);
                 return (
@@ -403,103 +395,109 @@ export default function App() {
                     key={m.id}
                     type="button"
                     onClick={() => handleCardClick(m.id, m.category)}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '6rem', padding: '1.25rem', borderRadius: '1rem', border: isCompleted ? '2px solid #10b981' : '2px solid #475569', backgroundColor: isCompleted ? '#064e3b' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', position: 'relative', overflow: 'hidden', boxSizing: 'border-box' }}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '3.8rem', padding: '0.75rem', borderRadius: '0.75rem', border: isCompleted ? '1px solid #10b981' : '1px solid #475569', backgroundColor: isCompleted ? '#064e3b' : '#0f172a', color: '#ffffff', textAlign: 'left', cursor: 'pointer', boxSizing: 'border-box' }}
                   >
-                    <span style={{ fontSize: '1.125rem', fontWeight: 900, color: isCompleted ? '#a7f3d0' : '#f8fafc' }}>{m.text}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 900, color: isCompleted ? '#a7f3d0' : '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.text}</span>
                     <div>
                       {isCompleted ? (
-                        <div style={{ backgroundColor: '#10b981', color: '#020617', fontWeight: 900, fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '0.5rem' }}>완료!</div>
+                        <span style={{ backgroundColor: '#10b981', color: '#020617', fontWeight: 900, fontSize: '0.65rem', padding: '0.15rem 0.35rem', borderRadius: '0.25rem' }}>OK</span>
                       ) : (
-                        <div style={{ width: '1.75rem', height: '1.75rem', borderRadius: '9999px', border: '2px solid #475569' }} />
+                        <div style={{ width: '1.1rem', height: '1.1rem', borderRadius: '9999px', border: '1px solid #475569' }} />
                       )}
                     </div>
                   </button>
                 );
               })}
             </div>
-
-            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-              <button type="button" onClick={resetTodayQuest} style={{ color: '#ef4444', backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', padding: '0.5rem 1.25rem', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 700 }}>🔄 작전 초기화</button>
-            </div>
           </div>
         )}
 
         {/* ==========================================
-            [PHASE 3] 100원 저금통 화면
+            [PHASE 3] 100원 저금통 완료 화면 (깨짐방지 보석 테마)
             ========================================== */}
         {currentPhase === 'success' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '32rem', margin: '0 auto' }}>
-            <div style={{ backgroundColor: '#0f172a', border: '4px solid #eab308', borderRadius: '1.5rem', padding: '2rem', textAlign: 'center' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏆</div>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#facc15', margin: 0 }}>MISSION ACCOMPLISHED</h2>
-              <p style={{ color: '#cbd5e1', marginTop: '0.5rem', fontWeight: 700 }}>오늘의 퀘스트를 격파했습니다!</p>
+          <div className="flex flex-col gap-3 max-w-xl mx-auto text-center">
+            <div className="bg-slate-900 border-2 border-yellow-500 rounded-2xl p-5" style={{ backgroundColor: '#0f172a', border: '2px solid #eab308' }}>
+              <div className="text-4xl mb-1">💎</div>
+              <h2 className="text-xl font-black text-yellow-400 m-0 tracking-wide">MISSION ACCOMPLISHED</h2>
+              <p className="text-xs text-slate-300 mt-1">오늘의 비밀 요원 가동을 대성공으로 마쳤다!</p>
               
-              <div style={{ padding: '2rem 0' }}>
-                <motion.div initial={{ scale: 0.5 }} animate={{ scale: [1, 1.3, 1] }} transition={{ repeat: Infinity, duration: 1.5 }} style={{ fontSize: '6rem' }}>🪙</motion.div>
+              {/* 반짝이는 고대비 보석 애니메이션 가동 */}
+              <div className="py-4">
+                <motion.div 
+                  initial={{ rotateY: 0, scale: 0.8 }} 
+                  animate={{ rotateY: 360, scale: [1, 1.15, 1] }} 
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} 
+                  style={{ fontSize: '4.5rem', textShadow: '0 0 20px rgba(234,179,8,0.6)' }}
+                >
+                  💎
+                </motion.div>
               </div>
 
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ffffff', backgroundColor: '#020617', padding: '0.75rem', borderRadius: '1rem', border: '1px solid #1e293b' }}>
-                금고 적립 완료: +100 원
+              <div className="text-lg font-black text-white bg-slate-950 py-2 rounded-xl border border-slate-800" style={{ backgroundColor: '#020617' }}>
+                보물 입고: +100 원 완료
               </div>
             </div>
 
-            {/* 15일 보장 현황판 */}
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '1.5rem', border: '1px solid #334155' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontStyle: 'normal', fontWeight: 900, color: '#eab308', fontSize: '0.875rem' }}>🎖️ 15일 파이널 용돈 보드</span>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>{coinCount} / 15 격파</span>
+            {/* 15일 챌린지 전용 보드 (이모지 완전 고정판) */}
+            <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-black text-yellow-500">🎖️ 15일 보물 축적 전장판</span>
+                <span className="text-[11px] text-slate-400 font-bold">{coinCount} / 15 격파</span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem' }}>
+              <div className="grid grid-cols-5 gap-1.5">
                 {Array.from({ length: 15 }).map((_, i) => (
-                  <div key={i} style={{ aspectRatio: '1/1', borderRadius: '1rem', border: '2px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 900, backgroundColor: i < coinCount ? '#eab308' : '#020617', color: i < coinCount ? '#020617' : '#475569' }}>
-                    {i < coinCount ? '🪙' : i + 1}
+                  <div 
+                    key={i} 
+                    style={{ aspectRatio: '1/1', borderRadius: '0.75rem', border: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 900, backgroundColor: i < coinCount ? '#eab308' : '#020617', color: i < coinCount ? '#020617' : '#475569', boxSizing: 'border-box' }}
+                  >
+                    {i < coinCount ? '💎' : i + 1}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <button type="button" onClick={() => setCurrentPhase('stats')} style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 900, padding: '1rem', borderRadius: '1rem', border: 'none', cursor: 'pointer', fontSize: '1.125rem' }}>📊 분석하기</button>
-              <button type="button" onClick={resetTodayQuest} style={{ backgroundColor: '#334155', color: '#ffffff', fontWeight: 900, padding: '1rem', borderRadius: '1rem', border: 'none', cursor: 'pointer', fontSize: '1.125rem' }}>🔄 다시 시작</button>
+            <div className="grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => setCurrentPhase('stats')} className="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black py-3 rounded-xl border-none cursor-pointer text-sm">📊 분석 일지 열기</button>
+              <button type="button" onClick={resetTodayQuest} className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-black py-3 rounded-xl border border-slate-700 cursor-pointer text-sm">🔄 새로 시작</button>
             </div>
           </div>
         )}
 
         {/* ==========================================
-            [PHASE 4] 부모님 분석 통계 화면 (Recharts 최적화)
+            [PHASE 4] 부모님 전술 데이터 분석실
             ========================================== */}
         {currentPhase === 'stats' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '1.5rem' }}>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center bg-slate-900 p-4 rounded-xl">
               <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>📊 종합 행동 성취 분석실</h2>
-                <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0 }}>아동의 누적 행동 리포트입니다.</p>
+                <h2 className="text-base font-black m-0">📊 사령부 종합 전술 분석실</h2>
+                <p className="text-[11px] text-slate-400 m-0">아동의 축적 데이터 로그 시각화 패널입니다.</p>
               </div>
-              <button type="button" onClick={exportToCSV} style={{ backgroundColor: '#10b981', color: '#020617', fontWeight: 900, fontSize: '0.75rem', padding: '0.5rem 1rem', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>💾 일일 분석 기록 CSV 저장</button>
+              <button type="button" onClick={exportToCSV} className="bg-emerald-600 text-slate-950 font-black text-xs px-3 py-2 rounded-lg border-none cursor-pointer">💾 성취 데이터 일지 CSV 백업</button>
             </div>
 
-            <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '1.5rem', border: '1px solid #334155' }}>
-              <h4 style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 1rem 0', uppercase: true }}>📈 최근 일주일 퀘스트 완수 트렌드</h4>
-              <div style={{ height: '16rem' }}>
+            {/* 시계열 도표 */}
+            <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
+              <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={lineData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                    <XAxis dataKey="name" stroke="#94a3b8" />
-                    <YAxis stroke="#94a3b8" allowDecimals={false} />
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                    <YAxis stroke="#94a3b8" fontSize={10} allowDecimals={false} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="완료수" stroke="#06b6d4" strokeWidth={3} />
+                    <Line type="monotone" dataKey="격파수" stroke="#06b6d4" strokeWidth={2.5} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '1.5rem', border: '1px solid #334155' }}>
-                <h4 style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 1rem 0' }}>🍕 분야별 총 격파 누적 기여율</h4>
-                <div style={{ height: '12rem' }}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={5} dataKey="value">
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={25} outerRadius={40} paddingAngle={4} dataKey="value">
                         {pieData.map((e, idx) => <Cell key={idx} fill={e.color} />)}
                       </Pie>
                       <Tooltip />
@@ -508,71 +506,67 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#0f172a', padding: '1.25rem', borderRadius: '1.5rem', border: '1px solid #334155' }}>
-                <h4 style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 1rem 0' }}>🏆 다빈도 공부 정복 랭킹 TOP 5</h4>
-                <div style={{ height: '12rem' }}>
+              <div className="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="name" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" allowDecimals={false} />
+                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={8} />
+                      <YAxis stroke="#94a3b8" fontSize={9} allowDecimals={false} />
                       <Tooltip />
-                      <Bar dataKey="수행횟수" fill="#3b82f6" />
+                      <Bar dataKey="횟수" fill="#3b82f6" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            <button type="button" onClick={() => setCurrentPhase('plan')} style={{ backgroundColor: '#1e293b', color: '#cbd5e1', fontWeight: 900, padding: '1rem', borderRadius: '1rem', border: 'none', cursor: 'pointer' }}>⬅️ 기지 메인 제어판으로 복귀</button>
+            <button type="button" onClick={() => setCurrentPhase('plan')} className="bg-slate-800 text-slate-300 font-black py-3 rounded-xl border border-slate-700 cursor-pointer text-sm">⬅️ 제어판 중앙 메인으로 복귀</button>
           </div>
         )}
       </main>
 
-      {/* [MODAL] 상단 ✏️ 에디터 컨트롤 모달 팝업 */}
+      {/* 🛠️ 관리자 팝업 데이터 제어 에디터 모달 */}
       <AnimatePresence>
         {isEditorOpen && (
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2,6,23,0.85)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div style={{ backgroundColor: '#0f172a', width: '100%', maxWidth: '36rem', borderRadius: '1.5rem', border: '2px solid #334155', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '0.5rem' }}>
-                <h3 style={{ margin: 0, fontStyle: 'normal', fontSize: '1.25rem', color: '#fff' }}>🛠️ 작전 항목 데이터 커스텀 에디터</h3>
-                <button type="button" onClick={() => setIsEditorOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2,6,23,0.85)', zIndex: 50, display: 'flex', alignItems: 'center', justifycontent: 'center', padding: '1rem' }}>
+            <div style={{ backgroundColor: '#0f172a', width: '100%', maxWidth: '34rem', borderRadius: '1.25rem', border: '2px solid #334155', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '0.4rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', fontWeight: 900 }}>🛠️ 전술 타깃 데이터 허브 에디터</h3>
+                <button type="button" onClick={() => setIsEditorOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
               </div>
 
-              {/* 목표량 세팅 수정부 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: '#020617', padding: '1rem', borderRadius: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', backgroundColor: '#020617', padding: '0.75rem', borderRadius: '0.75rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>공부 목표 (개)</label>
-                  <input type="number" min={1} max={12} value={settings.studyTarget} onChange={(e) => setSettings({ ...settings, studyTarget: Number(e.target.value) })} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem', color: '#fff', fontWeight: 700 }} />
+                  <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '0.15rem' }}>공부 목표 (개)</label>
+                  <input type="number" min={1} max={12} value={settings.studyTarget} onChange={(e) => setSettings({ ...settings, studyTarget: Number(e.target.value) })} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff', fontWeight: 700 }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>집안일 목표 (개)</label>
-                  <input type="number" min={0} max={5} value={settings.houseworkTarget} onChange={(e) => setSettings({ ...settings, houseworkTarget: Number(e.target.value) })} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem', color: '#fff', fontWeight: 700 }} />
+                  <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '0.15rem' }}>집안일 목표 (개)</label>
+                  <input type="number" min={0} max={5} value={settings.houseworkTarget} onChange={(e) => setSettings({ ...settings, houseworkTarget: Number(e.target.value) })} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff', fontWeight: 700 }} />
                 </div>
               </div>
 
-              {/* 추가 양식 폼 */}
-              <form onSubmit={addMission} style={{ display: 'flex', gap: '0.5rem', backgroundColor: '#020617', padding: '0.5rem', borderRadius: '1rem' }}>
-                <select value={newMissionCat} onChange={(e: any) => setNewMissionCat(e.target.value)} style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem', color: '#fff', fontWeight: 700 }}><option value="essential">필수</option><option value="study">공부</option><option value="housework">집안일</option></select>
-                <input type="text" placeholder="미션 이름 입력" value={newMissionText} onChange={(e) => setNewMissionText(e.target.value)} style={{ flex: 1, backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', padding: '0.5rem', color: '#fff', fontSize: '0.875rem' }} />
-                <button type="submit" style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 900, border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer' }}>등록</button>
+              <form onSubmit={addMission} style={{ display: 'flex', gap: '0.4rem', backgroundColor: '#020617', padding: '0.4rem', borderRadius: '0.75rem' }}>
+                <select value={newMissionCat} onChange={(e: any) => setNewMissionCat(e.target.value)} style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff' }}><option value="essential">필수</option><option value="study">공부</option><option value="housework">집안일</option></select>
+                <input type="text" placeholder="새 미션 명칭 입력" value={newMissionText} onChange={(e) => setNewMissionText(e.target.value)} style={{ flex: 1, backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff', fontSize: '0.8rem' }} />
+                <button type="submit" style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 900, border: 'none', padding: '0.4rem 0.8rem', borderRadius: '#0.4rem', cursor: 'pointer' }}>등록</button>
               </form>
 
-              {/* CRUD 전체 리스트 스크롤 영역 */}
-              <div style={{ maxHeight: '14rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ maxHeight: '10rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 {missions.map(m => (
-                  <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#020617', padding: '0.5rem 0.75rem', borderRadius: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
-                      <span style={{ fontSize: '9px', fontWeight: 900, padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#1e293b' }}>{m.category === 'essential' ? '필수' : m.category === 'study' ? '공부' : '집안일'}</span>
+                  <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#020617', padding: '0.4rem 0.6rem', borderRadius: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
+                      <span style={{ fontSize: '8px', fontWeight: 900, padding: '0.1rem 0.3rem', borderRadius: '0.2rem', backgroundColor: '#1e293b' }}>{m.category === 'essential' ? '필수' : m.category === 'study' ? '공부' : '집안일'}</span>
                       {editingId === m.id ? (
-                        <input type="text" value={editingText} onChange={(e) => setEditingText(e.target.value)} style={{ backgroundColor: '#0f172a', border: '1px solid #475569', color: '#fff', padding: '0.25rem', borderRadius: '0.25rem', fontSize: '0.75rem', flex: 1 }} />
+                        <input type="text" value={editingText} onChange={(e) => setEditingText(e.target.value)} style={{ backgroundColor: '#0f172a', border: '1px solid #475569', color: '#fff', padding: '0.2rem', borderRadius: '0.2rem', fontSize: '0.7rem', flex: 1 }} />
                       ) : (
-                        <span style={{ fontSize: '0.875rem', fontWeight: 700 }}>{m.text}</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>{m.text}</span>
                       )}
                     </div>
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', gap: '0.2rem' }}>
                       {editingId === m.id ? (
-                        <button type="button" onClick={() => saveEdit(m.id)} style={{ color: '#10b981', background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer' }}>✓</button>
+                        <button type="button" onClick={() => saveEdit(m.id)} style={{ color: '#10b981', background: 'none', border: 'none', cursor: 'pointer' }}>✓</button>
                       ) : (
                         <button type="button" onClick={() => { setEditingId(m.id); setEditingText(m.text); }} style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>✏️</button>
                       )}
@@ -582,8 +576,8 @@ export default function App() {
                 ))}
               </div>
 
-              <div style={{ textAlign: 'right', borderTop: '1px solid #1e293b', paddingTop: '0.75rem' }}>
-                <button type="button" onClick={() => setIsEditorOpen(false)} style={{ backgroundColor: '#334155', color: '#fff', fontWeight: 700, padding: '0.5rem 1.25rem', borderRadius: '0.75rem', border: 'none', cursor: 'pointer' }}>닫기 및 수정 종료</button>
+              <div style={{ textAlign: 'right', borderTop: '1px solid #1e293b', paddingTop: '0.5rem' }}>
+                <button type="button" onClick={() => setIsEditorOpen(false)} style={{ backgroundColor: '#334155', color: '#fff', fontWeight: 700, padding: '0.4rem 1rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>닫기</button>
               </div>
             </div>
           </div>
