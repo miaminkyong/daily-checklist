@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Check, Plus, Trash2, Edit2, Download, BarChart2, Calendar, 
-  Settings, Award, Flame, Database, CheckCircle2, Circle, X
-} from 'lucide-react';
+import { Check, Plus, Trash2, Edit2, Download } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend
+  PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
 import confetti from 'canvas-confetti';
 
+// Vercel 오류 방지를 위한 타입 구조 유연화
 interface Mission {
   id: string;
   category: 'essential' | 'study' | 'housework';
@@ -27,7 +25,6 @@ interface DailyRecord {
 }
 
 const INITIAL_MISSIONS: Mission[] = [
-  // 필수 미션 (자동 선택)
   { id: 'e1', category: 'essential', text: '🤖 바닥 완벽 정리' },
   { id: 'e2', category: 'essential', text: '📚 책상 & 책장 정리' },
   { id: 'e3', category: 'essential', text: '🧪 개인 물병 싱크대에 놓기' },
@@ -37,7 +34,6 @@ const INITIAL_MISSIONS: Mission[] = [
   { id: 'e7', category: 'essential', text: '🎒 내일 학교 가방 미리 챙기기' },
   { id: 'e8', category: 'essential', text: '📐 내일 학원 가방 미리 챙기기' },
 
-  // 공부 퀘스트
   { id: 's1', category: 'study', text: '🧮 연산 마스터 3페이지' },
   { id: 's2', category: 'study', text: '📐 수학 교재 숙제 완수' },
   { id: 's3', category: 'study', text: '🧠 사고력 수학 문제 풀기' },
@@ -51,7 +47,6 @@ const INITIAL_MISSIONS: Mission[] = [
   { id: 's11', category: 'study', text: '📝 영어 학원 과제 클리어' },
   { id: 's12', category: 'study', text: '🎯 필수 영단어 암기 퀘스트' },
 
-  // 집안일 지원
   { id: 'h1', category: 'housework', text: '☀️ 거실 커튼 예쁘게 걷기' },
   { id: 'h2', category: 'housework', text: '👟 현관 신발 각 잡아 정리하기' },
   { id: 'h3', category: 'housework', text: '🍽️ 식기세척기 그릇 정리 돕기' },
@@ -240,7 +235,7 @@ export default function App() {
       { name: '집안일', value: categories.housework, color: '#F97316' },
     ];
 
-    const studyCounts: { [key: string]: number } = {};
+    const studyCounts: Record<string, number> = {};
     history.filter(h => h.category === 'study' && h.completed).forEach(h => { studyCounts[h.text] = (studyCounts[h.text] || 0) + 1; });
     const barData = Object.keys(studyCounts).map(k => ({ name: k.substring(2, 8), 횟수: studyCounts[k] })).slice(0, 5);
 
@@ -291,9 +286,9 @@ export default function App() {
 
       <main className="max-w-4xl mx-auto p-4 mt-2">
         <div className="grid grid-cols-3 gap-2 mb-6 bg-slate-900 p-1 rounded-xl border border-slate-800">
-          <button onClick={() => setActiveTab('quest')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'quest' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>⚔️ 작전 시작</button>
-          <button onClick={() => setActiveTab('stats')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'stats' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>📊 기록 분석</button>
-          <button onClick={() => setActiveTab('manage')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'manage' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>⚙️ 미션 편집</button>
+          <button type="button" onClick={() => setActiveTab('quest')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'quest' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>⚔️ 작전 시작</button>
+          <button type="button" onClick={() => setActiveTab('stats')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'stats' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>📊 기록 분석</button>
+          <button type="button" onClick={() => setActiveTab('manage')} className={`py-2.5 rounded-lg font-black text-xs transition-all ${activeTab === 'manage' ? 'bg-cyan-600 text-white' : 'text-slate-400'}`}>⚙️ 미션 편집</button>
         </div>
 
         {activeTab === 'quest' && (
@@ -325,12 +320,12 @@ export default function App() {
             {!isQuestActive ? (
               <div className="bg-slate-900 rounded-xl p-4 border border-cyan-500/30 flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
                 <p className="text-xs font-bold text-slate-300">💡 오늘 격파할 공부와 집안일 퀘스트를 누른 뒤 시작 버튼을 터치하세요!</p>
-                <button onClick={startTodayQuest} className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm px-6 py-2.5 rounded-lg transition-all shadow-md tracking-wider">🚀 작전 시작!</button>
+                <button type="button" onClick={startTodayQuest} className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-sm px-6 py-2.5 rounded-lg transition-all shadow-md tracking-wider">🚀 작전 시작!</button>
               </div>
             ) : (
               <div className="bg-slate-900 rounded-xl p-3 border border-slate-800 flex justify-between items-center mb-6">
                 <span className="text-xs font-bold text-emerald-400 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>작전 수행 상태 돌입</span>
-                <button onClick={resetTodayQuest} className="text-[10px] font-bold text-red-400 bg-red-950/30 px-2.5 py-1 rounded border border-red-900/50">🔄 리셋</button>
+                <button type="button" onClick={resetTodayQuest} className="text-[10px] font-bold text-red-400 bg-red-950/30 px-2.5 py-1 rounded border border-red-900/50">🔄 리셋</button>
               </div>
             )}
 
@@ -372,17 +367,36 @@ export default function App() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><div className="text-[10px] text-slate-400 font-bold">누적 성공</div><div className="text-base font-black text-white">{coinCount}일 성공</div></div>
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800"><div className="text-[10px] text-slate-400 font-bold">완료한 총 퀘스트</div><div className="text-base font-black text-white">{history.filter(h => h.completed).length}개</div></div>
-              <button onClick={exportToCSV} className="col-span-2 sm:col-span-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 text-slate-300 py-4"><Download size={14} /> CSV 저장</button>
+              <button type="button" onClick={exportToCSV} className="col-span-2 sm:col-span-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 text-slate-300 py-4"><Download size={14} /> CSV 저장</button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">📈 일주일 성취도 분석</h4>
-                <div className="h-48"><ResponsiveContainer width="100%" height="100%"><LineChart data={lineData.length > 0 ? lineData : [{name: '데이터없음', 완료율: 0}]}><CartesianGrid strokeDasharray="3 3" stroke="#1e293b" /><XAxis dataKey="name" stroke="#94a3b8" fontSize={10} /><YAxis stroke="#94a3b8" fontSize={10} domain={[0, 100]} /><Tooltip /><Line type="monotone" dataKey="완료율" stroke="#06b6d4" strokeWidth={2} /></LineChart></ResponsiveContainer></div>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={lineData.length > 0 ? lineData : [{name: '데이터없음', 완료율: 0}]}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                      <YAxis stroke="#94a3b8" fontSize={10} domain={[0, 100]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="완료율" stroke="#06b6d4" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
               <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col justify-between">
                 <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">🍕 분야별 미션 완료 비율</h4>
-                <div className="h-36"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={pieData.some(d => d.value > 0) ? pieData : [{name: '미완료', value: 1, color: '#334155'}]} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={5} dataKey="value">{pieData.map((e, idx) => <Cell key={idx} fill={e.color} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div>
+                <div className="h-36">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData.some(d => d.value > 0) ? pieData : [{name: '미완료', value: 1, color: '#334155'}]} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={5} dataKey="value">
+                        {pieData.map((e, idx) => <Cell key={idx} fill={e.color} />)}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
                 <div className="flex justify-around text-[10px] font-bold text-slate-400"><span className="text-emerald-400">필수</span><span className="text-blue-400">공부</span><span className="text-orange-400">집안일</span></div>
               </div>
             </div>
@@ -418,8 +432,8 @@ export default function App() {
                       {editingId === m.id ? <input type="text" value={editingText} onChange={(e) => setEditingText(e.target.value)} className="bg-slate-900 border border-slate-700 text-white rounded px-2 py-0.5 text-xs font-bold flex-1" /> : <span className="text-xs font-bold text-slate-300">{m.text}</span>}
                     </div>
                     <div className="flex gap-1">
-                      {editingId === m.id ? <button onClick={() => saveEdit(m.id)} className="text-xs font-bold text-emerald-400 px-1">✓</button> : <button onClick={() => startEdit(m.id, m.text)} className="text-slate-500 hover:text-white p-1"><Edit2 size={12} /></button>}
-                      <button onClick={() => deleteMission(m.id)} className="text-red-400 hover:bg-red-950/20 p-1 rounded"><Trash2 size={12} /></button>
+                      {editingId === m.id ? <button type="button" onClick={() => saveEdit(m.id)} className="text-xs font-bold text-emerald-400 px-1">✓</button> : <button type="button" onClick={() => startEdit(m.id, m.text)} className="text-slate-500 hover:text-white p-1"><Edit2 size={12} /></button>}
+                      <button type="button" onClick={() => deleteMission(m.id)} className="text-red-400 hover:bg-red-950/20 p-1 rounded"><Trash2 size={12} /></button>
                     </div>
                   </div>
                 ))}
@@ -442,7 +456,7 @@ function Card({ m, isSelected, isCompleted, isQuestActive, onClick }: { m: Missi
   }
 
   return (
-    <motion.button whileTap={{ scale: 0.98 }} onClick={onClick} className={`w-full p-4 rounded-xl flex items-center justify-between text-left transition-all relative overflow-hidden h-16 ${cardStyle}`}>
+    <motion.button type="button" whileTap={{ scale: 0.98 }} onClick={onClick} className={`w-full p-4 rounded-xl flex items-center justify-between text-left transition-all relative overflow-hidden h-16 ${cardStyle}`}>
       <div className="flex items-center gap-3">
         {!isCompleted && <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${m.category === 'essential' ? 'bg-emerald-500' : m.category === 'study' ? 'bg-blue-500' : 'bg-orange-500'}`} />}
         <span className={`text-sm font-bold tracking-wide ${isCompleted ? 'line-through text-slate-500' : 'text-slate-200'}`}>{m.text}</span>
