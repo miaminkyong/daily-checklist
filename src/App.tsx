@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Plus, Trash2, Edit2, Download, X } from 'lucide-react';
+import { Check, Plus, Trash2, Edit2, Download } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar
@@ -138,9 +138,8 @@ export default function App() {
     confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } });
     const newSavings = savings + 100;
     
-    // 🪙 1500원(15일) 완공 시 자동 리셋 시스템 도입
     if (newSavings >= 1500) {
-      alert("🎉 축하합니다! 15일 퀘스트를 모두 격파하여 1500원을 정복했습니다! 부모님께 용돈을 요청하고 다음 15일 도전을 시작하세요! 용돈 보관함이 새로 리셋됩니다.");
+      alert("🎉 축하합니다! 15일 보물 수집판을 가득 채워 1500원을 획득했습니다! 부모님께 용돈을 요청하고 다음 도전을 시작하세요. 보관함이 다시 0원부터 시작됩니다.");
       setSavings(0);
       localStorage.setItem('quest_savings', '0');
     } else {
@@ -268,28 +267,32 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-3 select-none flex flex-col justify-between" style={{ minHeight: '100vh', backgroundColor: '#020617', boxSizing: 'border-box' }}>
       
-      {/* 🚀 갤럭시탭 맞춤 슬림 밀리터리 헤더 */}
+      {/* 🚀 1. 설정 버튼을 우측 상단 지갑 옆으로 완벽 이동한 새로운 슬림 헤더 */}
       <header className="flex justify-between items-center bg-slate-900 border-b-2 border-cyan-500/30 p-2.5 rounded-xl shadow-md" style={{ backgroundColor: '#0f172a', borderBottom: '2px solid rgba(6,182,212,0.3)', padding: '0.6rem 1rem' }}>
-        <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div>
+          <h1 className="text-xl font-black tracking-wider text-cyan-400 m-0" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#22d3ee' }}>DAILY QUEST</h1>
+        </div>
+
+        {/* 지갑 및 설정 그룹 */}
+        <div className="flex items-center gap-3.5" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* 보물 상자 */}
+          <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-yellow-500/40 flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#020617', border: '1px solid rgba(234,179,8,0.4)', padding: '0.4rem 0.8rem' }}>
+            <span className="text-xl animate-pulse" style={{ fontSize: '1.25rem' }}>💎</span>
+            <div className="text-left">
+              <div className="text-[9px] text-yellow-500 font-black" style={{ fontSize: '9px', color: '#eab308' }}>COMMANDER SAVINGS</div>
+              <div className="text-base font-black text-yellow-400 p-0 m-0 leading-tight" style={{ fontSize: '1.1rem', fontWeight: 900, color: '#facc15' }}>{savings} 원</div>
+            </div>
+          </div>
+          
+          {/* 우측 상단으로 이동한 에디터 설정 버튼 */}
           <button 
             type="button" 
             onClick={() => setIsEditorOpen(true)}
             className="bg-slate-950 text-cyan-400 font-bold p-2 text-base rounded-xl border border-slate-700 active:scale-90 transition-all cursor-pointer"
+            style={{ backgroundColor: '#020617', border: '1px solid #334155', padding: '0.45rem 0.8rem', borderRadius: '0.75rem', color: '#22d3ee' }}
           >
             ⚙️ 설정
           </button>
-          <div>
-            <h1 className="text-xl font-black tracking-wider text-cyan-400 m-0" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#22d3ee' }}>DAILY QUEST</h1>
-          </div>
-        </div>
-
-        {/* 💎 이모지 깨짐 완벽 방지 보물 창고 */}
-        <div className="bg-slate-950 px-3 py-1.5 rounded-xl border border-yellow-500/40 flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#020617', border: '1px solid rgba(234,179,8,0.4)', padding: '0.4rem 0.8rem' }}>
-          <span className="text-xl animate-pulse" style={{ fontSize: '1.25rem' }}>💎</span>
-          <div className="text-left">
-            <div className="text-[9px] text-yellow-500 font-black" style={{ fontSize: '9px', color: '#eab308' }}>COMMANDER SAVINGS</div>
-            <div className="text-base font-black text-yellow-400 p-0 m-0 leading-tight" style={{ fontSize: '1.1rem', fontWeight: 900, color: '#facc15' }}>{savings} 원</div>
-          </div>
         </div>
       </header>
 
@@ -297,13 +300,14 @@ export default function App() {
       <main className="flex-1 w-full max-w-5xl mx-auto my-2" style={{ width: '100%', margin: '0.5rem auto' }}>
         
         {/* ==========================================
-            [PHASE 1] 계획 수립 페이즈 (한 화면에 무조건 안착)
+            [PHASE 1] 계획 수립 페이즈
             ========================================== */}
         {currentPhase === 'plan' && (
           <div className="flex flex-col gap-3">
+            {/* 2. 작전 계획 수립 프로토콜 -> 작전 계획 문구 변경 */}
             <div className="bg-slate-900 p-3 rounded-xl border border-cyan-500/40 text-center flex items-center justify-between gap-4" style={{ backgroundColor: '#0f172a', border: '1px solid #06b6d4', padding: '0.75rem 1rem' }}>
               <div className="text-left">
-                <h2 className="text-base font-black text-cyan-400 m-0" style={{ fontSize: '1.05rem', color: '#22d3ee' }}>🎯 작전 계획 수립 프로토콜</h2>
+                <h2 className="text-base font-black text-cyan-400 m-0" style={{ fontSize: '1.05rem', color: '#22d3ee' }}>🎯 작전 계획</h2>
                 <p className="text-xs text-slate-400 m-0" style={{ fontSize: '0.8rem', color: '#94a3b8' }}>공부 {settings.studyTarget}개 + 집안일 {settings.houseworkTarget}개를 터치 장착해라!</p>
               </div>
               <button
@@ -316,10 +320,10 @@ export default function App() {
               </button>
             </div>
 
-            {/* 공부 선택 (3열 가로 압축형 격자) */}
+            {/* 3. 공부 강화 퀘스트 -> 오늘의 머리운동 4개 고르자 변경 */}
             <section>
               <div className="flex justify-between items-center mb-1.5">
-                <h3 className="text-sm font-black text-blue-400 m-0" style={{ color: '#3b82f6', fontSize: '0.9rem' }}>🧠 공부 강화 퀘스트</h3>
+                <h3 className="text-sm font-black text-blue-400 m-0" style={{ color: '#3b82f6', fontSize: '0.9rem' }}>🧠 오늘의 머리운동 {settings.studyTarget}개 고르자</h3>
                 <span className="text-[10px] font-bold bg-blue-950 text-blue-300 px-2 py-0.5 rounded-full">{missions.filter(m => m.category === 'study' && selectedIds.includes(m.id)).length} / {settings.studyTarget} 선택</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
@@ -340,10 +344,10 @@ export default function App() {
               </div>
             </section>
 
-            {/* 집안일 선택 (3열 동일 비율 격자) */}
+            {/* 4. 집안일 서포트 기여 -> 집안일도 고르자 변경 */}
             <section>
               <div className="flex justify-between items-center mb-1.5">
-                <h3 className="text-sm font-black text-orange-400 m-0" style={{ color: '#f97316', fontSize: '0.9rem' }}>🏡 집안일 서포트 기여</h3>
+                <h3 className="text-sm font-black text-orange-400 m-0" style={{ color: '#f97316', fontSize: '0.9rem' }}>🏡 집안일도 고르자</h3>
                 <span className="text-[10px] font-bold bg-orange-950 text-orange-300 px-2 py-0.5 rounded-full">{missions.filter(m => m.category === 'housework' && selectedIds.includes(m.id)).length} / {settings.houseworkTarget} 선택</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
@@ -367,26 +371,26 @@ export default function App() {
         )}
 
         {/* ==========================================
-            [PHASE 2] 작전 실행 페이즈 (필수 + 선택 통합 3열 바둑판)
+            [PHASE 2] 작전 실행 페이즈
             ========================================== */}
         {currentPhase === 'action' && (
           <div className="flex flex-col gap-3">
+            {/* 5. 실시간 하이테크 레이더 모드 -> 임무 완료 후 누르자 변경 */}
             <div className="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-800" style={{ backgroundColor: '#0f172a', padding: '0.6rem 1rem' }}>
               <div className="text-left">
-                <h2 className="text-sm font-black text-white m-0">⚡ 실시간 하이테크 레이더 모드</h2>
+                <h2 className="text-sm font-black text-white m-0">⚡ 임무 완료 후 누르자</h2>
                 <div style={{ width: '12rem', backgroundColor: '#020617', height: '0.75rem', borderRadius: '9999px', marginTop: '0.3rem', border: '1px solid #1e293b', overflow: 'hidden' }}>
                   <div style={{ height: '100%', background: 'linear-gradient(to right, #22d3ee, #10b981)', width: `${progressPercent}%`, transition: 'width 0.3s' }} />
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div style={{ backgroundColor: '#020617', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.85rem', fontStyle: 'normal', fontWeight: 700 }}>
+                <div style={{ backgroundColor: '#020617', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 700 }}>
                   <span style={{ color: '#10b981' }}>{completedCount}</span> / {totalCount} 완료
                 </div>
                 <button type="button" onClick={resetTodayQuest} className="text-[10px] font-bold text-red-400 bg-red-950/20 px-2.5 py-1.5 rounded-lg border border-red-900/40 cursor-pointer">🔄 리셋</button>
               </div>
             </div>
 
-            {/* 가로 공간 최적화용 3열 격자 배치 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
               {currentActiveMissions.map(m => {
                 const isCompleted = completedIds.includes(m.id);
@@ -413,16 +417,16 @@ export default function App() {
         )}
 
         {/* ==========================================
-            [PHASE 3] 100원 저금통 완료 화면 (깨짐방지 보석 테마)
+            [PHASE 3] 저금통 화면
             ========================================== */}
         {currentPhase === 'success' && (
           <div className="flex flex-col gap-3 max-w-xl mx-auto text-center">
+            {/* 6. 문구 변경 -> 오늘의 미션 완료! 대성공이군! */}
             <div className="bg-slate-900 border-2 border-yellow-500 rounded-2xl p-5" style={{ backgroundColor: '#0f172a', border: '2px solid #eab308' }}>
               <div className="text-4xl mb-1">💎</div>
-              <h2 className="text-xl font-black text-yellow-400 m-0 tracking-wide">MISSION ACCOMPLISHED</h2>
-              <p className="text-xs text-slate-300 mt-1">오늘의 비밀 요원 가동을 대성공으로 마쳤다!</p>
+              <h2 className="text-xl font-black text-yellow-400 m-0 tracking-wide">TODAY'S MISSION COMPLETE</h2>
+              <p className="text-xs text-slate-300 mt-1">오늘의 미션 완료! 대성공이군!</p>
               
-              {/* 반짝이는 고대비 보석 애니메이션 가동 */}
               <div className="py-4">
                 <motion.div 
                   initial={{ rotateY: 0, scale: 0.8 }} 
@@ -434,22 +438,23 @@ export default function App() {
                 </motion.div>
               </div>
 
-              <div className="text-lg font-black text-white bg-slate-950 py-2 rounded-xl border border-slate-800" style={{ backgroundColor: '#020617' }}>
+              <div className="text-lg font-black text-white bg-slate-950 py-2 rounded-xl border border-slate-800">
                 보물 입고: +100 원 완료
               </div>
             </div>
 
-            {/* 15일 챌린지 전용 보드 (이모지 완전 고정판) */}
+            {/* 7. 보물 축적 전장판 -> 보물 수집판 변경 */}
+            {/* 8. 1/15 격파 -> 1/15 수집 변경 */}
             <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-black text-yellow-500">🎖️ 15일 보물 축적 전장판</span>
-                <span className="text-[11px] text-slate-400 font-bold">{coinCount} / 15 격파</span>
+                <span className="text-xs font-black text-yellow-500">🎖️ 보물 수집판</span>
+                <span className="text-[11px] text-slate-400 font-bold">{coinCount} / 15 수집</span>
               </div>
               <div className="grid grid-cols-5 gap-1.5">
                 {Array.from({ length: 15 }).map((_, i) => (
                   <div 
                     key={i} 
-                    style={{ aspectRatio: '1/1', borderRadius: '0.75rem', border: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', fontWeight: 900, backgroundColor: i < coinCount ? '#eab308' : '#020617', color: i < coinCount ? '#020617' : '#475569', boxSizing: 'border-box' }}
+                    style={{ aspectRatio: '1/1', borderRadius: '0.75rem', border: '1px solid #1e293b', display: 'flex items-center justify-center', fontSize: '1.25rem', fontWeight: 900, backgroundColor: i < coinCount ? '#eab308' : '#020617', color: i < coinCount ? '#020617' : '#475569', boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     {i < coinCount ? '💎' : i + 1}
                   </div>
@@ -465,7 +470,7 @@ export default function App() {
         )}
 
         {/* ==========================================
-            [PHASE 4] 부모님 전술 데이터 분석실
+            [PHASE 4] 부모님 데이터 분석실
             ========================================== */}
         {currentPhase === 'stats' && (
           <div className="flex flex-col gap-3">
@@ -477,7 +482,6 @@ export default function App() {
               <button type="button" onClick={exportToCSV} className="bg-emerald-600 text-slate-950 font-black text-xs px-3 py-2 rounded-lg border-none cursor-pointer">💾 성취 데이터 일지 CSV 백업</button>
             </div>
 
-            {/* 시계열 도표 */}
             <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
               <div className="h-44">
                 <ResponsiveContainer width="100%" height="100%">
@@ -521,18 +525,18 @@ export default function App() {
               </div>
             </div>
 
-            <button type="button" onClick={() => setCurrentPhase('plan')} className="bg-slate-800 text-slate-300 font-black py-3 rounded-xl border border-slate-700 cursor-pointer text-sm">⬅️ 제어판 중앙 메인으로 복귀</button>
+            <button type="button" onClick={() => setCurrentPhase('plan')} className="bg-slate-800 text-slate-300 font-black py-3 rounded-xl border border-slate-700 cursor-pointer text-sm">⬅ shrink 제어판 중앙 메인으로 복귀</button>
           </div>
         )}
       </main>
 
-      {/* 🛠️ 관리자 팝업 데이터 제어 에디터 모달 */}
+      {/* 🛠️ 설정 모달 에디터 */}
       <AnimatePresence>
         {isEditorOpen && (
           <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(2,6,23,0.85)', zIndex: 50, display: 'flex', alignItems: 'center', justifycontent: 'center', padding: '1rem' }}>
             <div style={{ backgroundColor: '#0f172a', width: '100%', maxWidth: '34rem', borderRadius: '1.25rem', border: '2px solid #334155', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', margin: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '0.4rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', fontWeight: 900 }}>🛠️ 전술 타깃 데이터 허브 에디터</h3>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', fontWeight: 900 }}>🛠️ 작전 타깃 데이터 허브 에디터</h3>
                 <button type="button" onClick={() => setIsEditorOpen(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
               </div>
 
@@ -550,7 +554,7 @@ export default function App() {
               <form onSubmit={addMission} style={{ display: 'flex', gap: '0.4rem', backgroundColor: '#020617', padding: '0.4rem', borderRadius: '0.75rem' }}>
                 <select value={newMissionCat} onChange={(e: any) => setNewMissionCat(e.target.value)} style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff' }}><option value="essential">필수</option><option value="study">공부</option><option value="housework">집안일</option></select>
                 <input type="text" placeholder="새 미션 명칭 입력" value={newMissionText} onChange={(e) => setNewMissionText(e.target.value)} style={{ flex: 1, backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.4rem', padding: '0.4rem', color: '#fff', fontSize: '0.8rem' }} />
-                <button type="submit" style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 900, border: 'none', padding: '0.4rem 0.8rem', borderRadius: '#0.4rem', cursor: 'pointer' }}>등록</button>
+                <button type="submit" style={{ backgroundColor: '#06b6d4', color: '#020617', fontWeight: 900, border: 'none', padding: '0.4rem 0.8rem', borderRadius: '0.4rem', cursor: 'pointer' }}>등록</button>
               </form>
 
               <div style={{ maxHeight: '10rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
